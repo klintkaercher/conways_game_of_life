@@ -1,0 +1,5 @@
+set(conways_game_of_life_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+
+include("${conways_game_of_life_DIR/export_conways_game_of_life.cmake}")
+
+set(conways_game_of_life_LIBRARIES conways_game_of_life)
