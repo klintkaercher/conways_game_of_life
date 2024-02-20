@@ -47,13 +47,6 @@ void display_callback()
 {
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // KK - This used to be a function. We needed functions and getters and
-  // private member variables for three lines of code!
-  // We can tell from context that we're calculating some index.
-  // KK - Def a nitpick, but I think I fell down a rabbit hole of looking
-  // for more terse languages, but for C++, this totally works.
-  // Draw the game board
-  // Draw the grid of cells
   for (unsigned int x = 0; x < game.num_cols_; x++)
     for (unsigned int y = 0; y < game.num_rows_; y++)
     {
@@ -113,13 +106,10 @@ void special_keys_callback(int key, int mouseX, int mouseY)
 
 void keyboard_callback(unsigned char key, int mouseX, int mouseY)
 {
-  // KK - This switch case is a pretty small if-elseif as well.
   if (key == ' ')
     game.pause_ = !game.pause_;
   else if (key == 'c')
   {
-    // This used to be a function call that someone would have to chase,
-    // but now it's pretty obviously just clearing the boards.
     game.grid1_.fill(cgl::CellState::OFF);
     game.grid2_.fill(cgl::CellState::OFF);
   }
@@ -127,11 +117,8 @@ void keyboard_callback(unsigned char key, int mouseX, int mouseY)
 
 void mouse_callback(int button, int state, int mouseX, int mouseY)
 {
-  // KK - I appreciate the switch case before, but there were just not enough
-  // options to justify it.
   if (state == GLUT_DOWN)
   {
-    // KK - I'm actually not sure if these have to be int as opposed to unsigned.
     const int x = std::floor(mouseX / CELL_SIZE_PX);
     const int y = std::floor((WINDOW_HEIGHT - mouseY) / CELL_SIZE_PX);
     if (button == GLUT_LEFT_BUTTON)
@@ -158,8 +145,6 @@ void drawUnit(int x, int y)
 
 void drawCell(int x, int y, cgl::CellState state)
 {
-  // KK - At this point, I don't think your cells could be undetermined?
-  // Set the drawing color based on the state of the cell
   if (state == cgl::CellState::ON)
     glColor3f(cgl::cell_on_red, cgl::cell_on_green, cgl::cell_on_blue);
   else

@@ -5,8 +5,6 @@
 
 namespace conways_game_of_life
 {
-// KK - I think you always use `class`, especially since you're namespacing it anyways.
-// This would prevent from accidentally coercing to int.
 enum class CellState
 {
   ON,
@@ -19,21 +17,13 @@ class ConwaysGameOfLife
 public:
   //! \brief Initialize the Conway's Game of Life board.
   ConwaysGameOfLife() {
-    // This used to be an init() function, but just defining values
-    // at the declarations got us all the work.
-
-    // Initialize all cells off.
     grid1_.fill(CellState::OFF);
     grid2_.fill(CellState::OFF);
   }
 
-  // KK - Switched these out of a pair.
-  // It was always being accessed by first and second.
-  // Kept them as templates, but unsigned int templates.
   const unsigned int num_cols_ = C;
   const unsigned int num_rows_ = R;
 
-  // KK - Public! And just initialized from the get.
   //! \brief Pause board updates.
   bool pause_ = true;
 
@@ -94,10 +84,6 @@ private:
   CellState *next_grid_ = grid2_.data();
 
 
-  // KK - We're never having negative numbers of Alive neighbors, right?
-  // Having done this once before, I think it might be easier to understand
-  // just literally counting out the literal neighbors with wrapping instead
-  // of doing the loops? Could be super wrong, though, since you're using 1D.
   //! \brief Count the number of alive cells adjacent to the current cell.
   //!
   //! \param [in] x The X coordinate of the cell to count the neighbors of.
@@ -108,7 +94,6 @@ private:
     // Initialize counter
     unsigned int alive = 0;
 
-    // KK - Modulo operator might help in this function to check bounds.
     // Loop over X offsets in the range [-1, 1]
     for (int x_off = -1; x_off <= 1; x_off++)
     {

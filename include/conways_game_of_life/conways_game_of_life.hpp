@@ -43,9 +43,6 @@ void keyboard_callback(unsigned char key, int mouseX, int mouseY);
 //! \param [in] mouseY The Y position of the mouse cursor in the window when the button was pressed.
 void mouse_callback(int button, int state, int mouseX, int mouseY);
 
-//! \brief Draws the game board grid.
-void drawGrid();
-
 //! \brief Draws a single unit of the game board grid.
 //!
 //! \param [in] x The X coordinate of the unit to draw.
