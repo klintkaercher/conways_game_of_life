@@ -1,5 +1,6 @@
 #pragma once
 
+// KK - I'm still not sure how I feel about #defines for this.
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
 

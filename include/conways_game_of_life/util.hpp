@@ -3,5 +3,6 @@
 namespace conways_game_of_life
 {
     inline float normalize(float min, float max, float val) { return (val - min) / (max - min); }
-    inline int convert_indices(int x, int y, int width) { return (y * width) + x; }
+    // KK - These should never be negative, right?
+    inline unsigned int convert_indices(unsigned int x, unsigned int y, unsigned int width) { return (y * width) + x; }
 } // namespace conways_game_of_life

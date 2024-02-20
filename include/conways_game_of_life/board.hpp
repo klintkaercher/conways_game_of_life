@@ -1,48 +1,46 @@
 #pragma once
 #include <array>
-#include <cassert>
-#include <utility>
 
 #include <conways_game_of_life/util.hpp>
 
 namespace conways_game_of_life
 {
-enum CellState
+// KK - I think you always use `class`, especially since you're namespacing it anyways.
+// This would prevent from accidentally coercing to int.
+enum class CellState
 {
   ON,
   OFF
 };
 
-template <int C, int R>
+template <unsigned int C, unsigned int R>
 class ConwaysGameOfLife
 {
 public:
   //! \brief Initialize the Conway's Game of Life board.
-  ConwaysGameOfLife() { init(); }
+  ConwaysGameOfLife() {
+    // This used to be an init() function, but just defining values
+    // at the declarations got us all the work.
 
-  //! \brief Get the size of the game board.
-  //! \return std::pair<int, int> The number of columns and rows in the board.
-  std::pair<int,int> getSize() const { return size_; }
-
-  //! \brief Get the game grid.
-  //! \return CellState* The 1D array representing the cells.
-  CellState* getGrid() { return current_grid_; }
-
-  //! \brief Toggle the paused state of the game board.
-  //! Toggle updates to the game board. When paused, no new generations will be created.
-  void togglePause() { pause_ = !pause_; }
-
-  void setCell(int x, int y) { int index = convert_indices(x, y, C); current_grid_[index] = CellState::ON; }
-  void unsetCell(int x, int y) { int index = convert_indices(x, y, C); current_grid_[index] = CellState::OFF; }
-  void clear()
-  {
-    // Set all cells off.
-    for (int i = 0; i < C*R; i++)
-    {
-        grid1_[i] = CellState::OFF;
-        grid2_[i] = CellState::OFF;
-    }
+    // Initialize all cells off.
+    grid1_.fill(CellState::OFF);
+    grid2_.fill(CellState::OFF);
   }
+
+  // KK - Switched these out of a pair.
+  // It was always being accessed by first and second.
+  // Kept them as templates, but unsigned int templates.
+  const unsigned int num_cols_ = C;
+  const unsigned int num_rows_ = R;
+
+  // KK - Public! And just initialized from the get.
+  //! \brief Pause board updates.
+  bool pause_ = true;
+
+  //! \brief A grid to store the state of all the cells in the game.
+  std::array<CellState, C*R> grid1_;
+  //! \brief A grid to store the state of all the cells in the game.
+  std::array<CellState, C*R> grid2_;
 
   //! \brief Update loop of the game.
   //! Update the game grid with the next generation of cells.
@@ -50,76 +48,67 @@ public:
   {
     if (pause_) { return; }
     // Loop through all cells of the grid
-    for (int x = 0; x < C; x++)
+    for (unsigned int x = 0; x < C; x++)
     {
-      for (int y = 0; y < R; y++)
+      for (unsigned int y = 0; y < R; y++)
       {
-        int index = convert_indices(x, y, C);
+        // KK - const. This never changes and we know in the instant it's
+        // not supposed to. Any time moving forward we know index is
+        // supposed to be _exactly_ this.
+        const unsigned int index = convert_indices(x, y, C);
 
+        // KK - CONST
         // Count the number of neighbors that are alive
-        int alive = countAliveNeighbors(x, y);
+        const unsigned int alive = countAliveNeighbors(x, y);
 
         next_grid_[index] = current_grid_[index];
-        if (current_grid_[index] == CellState::OFF)
-        {
-          // Birth rule
-          if (alive == 3) { next_grid_[index] = CellState::ON; }
-        }
-        else if (current_grid_[index] == CellState::ON)
-        {
-          // Death rule
-          if (alive <= 1 || alive >= 4) { next_grid_[index] = CellState::OFF; }
-        }
+
+        // Birth rule
+        if (current_grid_[index] == CellState::OFF
+            && alive == 3)
+          next_grid_[index] = CellState::ON;
+        // Death rule
+        else if (current_grid_[index] == CellState::ON
+            && (alive <= 1 || alive >= 4))
+          next_grid_[index] = CellState::OFF;
       }
     }
 
     // Swap which grid we're modifying
-    grid_ = !grid_;
-    current_grid_ = grid_ ? grid1_.data() : grid2_.data();
-    next_grid_ = grid_ ? grid2_.data() : grid1_.data();
+    current_grid_ =
+      (current_grid_ == grid1_.data()) // if
+        ? grid2_.data()  // then
+        : grid1_.data(); // else
+
+    next_grid_ =
+      (current_grid_ == grid1_.data()) // if
+        ? grid2_.data()  // then
+        : grid1_.data(); // else
   }
+  //! \brief A pointer to the current grid.
+  CellState* current_grid_ = grid1_.data();
 
 private:
-  //! \brief The size of the grid
-  std::pair<int, int> size_ = std::make_pair(C, R);
 
-  //! \brief A grid to store the state of all the cells in the game.
-  std::array<CellState, C*R> grid1_;
-  //! \brief A grid to store the state of all the cells in the game.
-  std::array<CellState, C*R> grid2_;
-
-  //! \brief Which grid to use as the current grid, toggles on each update.
-  bool grid_;
-  //! \brief A pointer to the current grid.
-  CellState *current_grid_;
   //! \brief A pointer to the grid used for the next generation.
-  CellState *next_grid_;
+  CellState *next_grid_ = grid2_.data();
 
-  //! \brief Pause board updates.
-  bool pause_;
 
-  //! \brief Initialize the game board.
-  void init()
-  {
-    pause_ = true;
-    grid_ = false;
-    current_grid_ = grid_ ? grid1_.data() : grid2_.data();
-    next_grid_ = grid_ ? grid2_.data() : grid1_.data();
-
-    // Initialize all cells off.
-    clear();
-  }
-
+  // KK - We're never having negative numbers of Alive neighbors, right?
+  // Having done this once before, I think it might be easier to understand
+  // just literally counting out the literal neighbors with wrapping instead
+  // of doing the loops? Could be super wrong, though, since you're using 1D.
   //! \brief Count the number of alive cells adjacent to the current cell.
   //!
   //! \param [in] x The X coordinate of the cell to count the neighbors of.
   //! \param [in] y The Y coordinate of the cell to count the neighbors of.
   //! \return int The number of neighbors adjacent to the current cell.
-  int countAliveNeighbors(int x, int y)
+  unsigned int countAliveNeighbors(int x, int y)
   {
     // Initialize counter
-    int alive = 0;
+    unsigned int alive = 0;
 
+    // KK - Modulo operator might help in this function to check bounds.
     // Loop over X offsets in the range [-1, 1]
     for (int x_off = -1; x_off <= 1; x_off++)
     {
@@ -142,7 +131,7 @@ private:
         if (x_off == 0 && y_off == 0) { continue; }
 
         // Convert (x, y) coords to 1D array index
-        int neighbor_index = convert_indices(neighbor_x, neighbor_y, C);
+        unsigned int neighbor_index = convert_indices(neighbor_x, neighbor_y, C);
 
         // Increment counter if neighbor cell is alive
         if (current_grid_[neighbor_index] == CellState::ON) { alive++; }
